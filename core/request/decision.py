@@ -93,10 +93,6 @@ class RequestDecision:
             if cfg.auto_agree_friend:
                 today = date.today().isoformat()
                 if self.cfg.is_auto_agree_limited("friend", today):
-                    limit, _ = self.cfg.get_auto_agree_usage("friend", today)
-                    result.admin_reply += (
-                        f"\n自动处理：好友申请自动同意今日已达上限 {limit}，转人工审核"
-                    )
                     return False
                 result.approve = True
                 result.auto_agree_kind = "friend"
@@ -127,10 +123,6 @@ class RequestDecision:
             if cfg.auto_agree_group:
                 today = date.today().isoformat()
                 if self.cfg.is_auto_agree_limited("group", today):
-                    limit, _ = self.cfg.get_auto_agree_usage("group", today)
-                    result.admin_reply += (
-                        f"\n自动处理：群邀请自动同意今日已达上限 {limit}，转人工审核"
-                    )
                     return False
                 result.approve = True
                 result.auto_agree_kind = "group"

@@ -84,11 +84,9 @@ class NoticeDecision:
         gid = self.msg.group_id
 
         if self.msg.sub_type == "set":
-            result.admin_reply = f"哇！我成为了 {group_name}({gid}) 的管理员"
-            result.operator_reply = "芜湖~拿到管理了"
+            result.admin_reply = f"我成为了 {group_name}({gid}) 的管理员"
         else:
-            result.admin_reply = f"呜呜ww.. 我在 {group_name}({gid}) 的管理员被撤了"
-            result.operator_reply = "呜呜ww..干嘛撤掉我管理"
+            result.admin_reply = f"我在 {group_name}({gid}) 的管理员被撤了"
 
     async def _handle_ban(self, result: NoticeResult):
         group_name = await self._get_group_name()
@@ -97,13 +95,13 @@ class NoticeDecision:
 
         if self.msg.duration == 0:
             result.admin_reply = (
-                f"好耶！{operator_name} 在 {group_name}({gid}) 解除了我的禁言"
+                f"{operator_name} 在 {group_name}({gid}) 解除了我的禁言"
             )
             return
 
         duration_str = convert_duration_advanced(self.msg.duration)
         result.admin_reply = (
-            f"呜呜ww..我在 {group_name}({gid}) 被 {operator_name} 禁言了{duration_str}"
+            f"管理员，我在 {group_name}({gid}) 被 {operator_name} 禁言了{duration_str}"
         )
 
         if self.msg.duration > self.ncfg.max_duration:
@@ -115,7 +113,7 @@ class NoticeDecision:
         group_name = await self._get_group_name()
         operator_name = await self._get_operator_name()
         gid = self.msg.group_id
-        result.admin_reply = f"呜呜ww..我被 {operator_name} 踢出了 {group_name}({gid})"
+        result.admin_reply = f"管理员，我被 {operator_name} 踢出了 {group_name}({gid})"
         if self.cfg.notice.kick_block_group:
             result.black_group = True
             result.admin_reply += "，已将此群拉进黑名单"
@@ -132,7 +130,7 @@ class NoticeDecision:
             gid, date.today().isoformat()
         )
 
-        result.admin_reply = f"主人..我被 {operator_name} 拉进了 {group_name}({gid})。"
+        result.admin_reply = f"管理员，我被 {operator_name} 拉进了 {group_name}({gid})。"
 
         # 审批员直接拉入小群仍按小群规则处理；审批通过的群邀请不自动退群
         if self.msg.operator_id in self.cfg.manage_users:
@@ -161,7 +159,6 @@ class NoticeDecision:
     ) -> bool:
         if self.cfg.is_black_group(self.msg.group_id):
             result.admin_reply += f"\n群聊 {group_name}({gid}) 在黑名单里，我退群了"
-            result.operator_reply = "把我踢了还想要我回来？退了退了"
             result.leave_group = True
             return True
         return False
@@ -174,7 +171,7 @@ class NoticeDecision:
             result.admin_reply += (
                 f"\n我已经加了{len(group_list)}个群（超过了{max_cap}个），这群我退了"
             )
-            result.operator_reply = f"我最多只能加{max_cap}个群，现在已经加了{len(group_list)}个群，请不要拉我进群了"
+            result.operator_reply = f"加群数目过多，请不要拉我进群了"
             result.leave_group = True
             return True
         return False
@@ -200,7 +197,6 @@ class NoticeDecision:
         result.admin_reply += (
             f"\n检测到群内存在互斥成员 {member_name}({member_id})，这群我退了"
         )
-        result.operator_reply = f"我不想和{member_name}({member_id})在同一个群里，退了"
         result.leave_group = True
         return True
 
@@ -228,7 +224,7 @@ class NoticeDecision:
                 )
                 return False
             result.admin_reply += f"\n群人数 {member_count} ≤ {min_size}，小群我退了"
-            result.operator_reply = f"小群不加，人数 {member_count} ≤ {min_size}"
+            result.operator_reply = f"需要申请后拉群"
             result.leave_group = True
             return True
 

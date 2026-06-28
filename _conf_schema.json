@@ -82,6 +82,17 @@
                 "type": "bool",
                 "default": false
             },
+            "auto_agree_group_daily_limit": {
+                "description": "群邀请自动同意每日上限",
+                "hint": "仅限制自动同意群邀请的次数；0 表示不限制。达到上限后会转人工审核",
+                "type": "int",
+                "slider": {
+                    "min": 0,
+                    "max": 100,
+                    "step": 1
+                },
+                "default": 0
+            },
             "auto_reject_friend": {
                 "description": "自动拒绝好友请求(优先级较高)",
                 "hint": "开启后, Bot将自动拒绝所有好友请求",
@@ -93,6 +104,52 @@
                 "hint": "开启后, Bot将自动同意黑名单以外的所有好友请求",
                 "type": "bool",
                 "default": false
+            },
+            "auto_agree_friend_daily_limit": {
+                "description": "好友申请自动同意每日上限",
+                "hint": "仅限制自动同意好友申请的次数；0 表示不限制。达到上限后会转人工审核",
+                "type": "int",
+                "slider": {
+                    "min": 0,
+                    "max": 100,
+                    "step": 1
+                },
+                "default": 0
+            },
+            "auto_agree_group_used_date": {
+                "description": "群邀请自动同意计数日期",
+                "hint": "内部计数字段",
+                "type": "string",
+                "default": "",
+                "invisible": true
+            },
+            "auto_agree_group_used_count": {
+                "description": "群邀请自动同意当日计数",
+                "hint": "内部计数字段",
+                "type": "int",
+                "default": 0,
+                "invisible": true
+            },
+            "auto_agree_friend_used_date": {
+                "description": "好友申请自动同意计数日期",
+                "hint": "内部计数字段",
+                "type": "string",
+                "default": "",
+                "invisible": true
+            },
+            "auto_agree_friend_used_count": {
+                "description": "好友申请自动同意当日计数",
+                "hint": "内部计数字段",
+                "type": "int",
+                "default": 0,
+                "invisible": true
+            },
+            "approved_group_invites": {
+                "description": "已审批群邀请缓存",
+                "hint": "内部字段，用于区分已审批入群和直接拉入群",
+                "type": "list",
+                "default": [],
+                "invisible": true
             }
         }
     },

@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from datetime import date
 
 from aiocqhttp import CQHttp
 
@@ -14,6 +15,7 @@ class RequestResult:
     approve: bool | None = None
     block_group: bool | None = None
     block_user: bool | None = None
+    auto_agree_kind: str = ""
 
 
 class RequestDecision:
@@ -89,7 +91,15 @@ class RequestDecision:
 
             # 3. 自动同意
             if cfg.auto_agree_friend:
+                today = date.today().isoformat()
+                if self.cfg.is_auto_agree_limited("friend", today):
+                    limit, _ = self.cfg.get_auto_agree_usage("friend", today)
+                    result.admin_reply += (
+                        f"\n自动处理：好友申请自动同意今日已达上限 {limit}，转人工审核"
+                    )
+                    return False
                 result.approve = True
+                result.auto_agree_kind = "friend"
                 result.user_reply = "已自动同意好友请求"
                 result.admin_reply += "\n自动处理：已自动同意"
                 return True
@@ -115,7 +125,15 @@ class RequestDecision:
 
             # 3. 自动同意
             if cfg.auto_agree_group:
+                today = date.today().isoformat()
+                if self.cfg.is_auto_agree_limited("group", today):
+                    limit, _ = self.cfg.get_auto_agree_usage("group", today)
+                    result.admin_reply += (
+                        f"\n自动处理：群邀请自动同意今日已达上限 {limit}，转人工审核"
+                    )
+                    return False
                 result.approve = True
+                result.auto_agree_kind = "group"
                 result.user_reply = "已自动同意群邀请"
                 result.admin_reply += "\n自动处理：已自动同意"
                 return True

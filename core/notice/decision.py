@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from datetime import date
 
 from aiocqhttp import CQHttp
 
@@ -127,14 +128,22 @@ class NoticeDecision:
         group_name = await self._get_group_name()
         operator_name = await self._get_operator_name()
         gid = int(self.msg.group_id)
+        approved_invite = self.cfg.consume_approved_group_invite(
+            gid, date.today().isoformat()
+        )
 
         result.admin_reply = f"主人..我被 {operator_name} 拉进了 {group_name}({gid})。"
 
-        # 审批员拉群直接放行，其余人按规则过滤
-        if self.msg.operator_id not in self.cfg.manage_users:
+        # 审批员直接拉入小群仍按小群规则处理；审批通过的群邀请不自动退群
+        if self.msg.operator_id in self.cfg.manage_users:
+            if await self._check_group_size(
+                result, gid, approved_invite, small_only=True
+            ):
+                return
+        else:
             if await self._check_blacklist(result, group_name, gid):
                 return
-            if await self._check_group_size(result, gid):
+            if await self._check_group_size(result, gid, approved_invite):
                 return
             if await self._check_capacity(result):
                 return
@@ -195,7 +204,13 @@ class NoticeDecision:
         result.leave_group = True
         return True
 
-    async def _check_group_size(self, result: NoticeResult, gid: int) -> bool:
+    async def _check_group_size(
+        self,
+        result: NoticeResult,
+        gid: int,
+        approved_invite: bool = False,
+        small_only: bool = False,
+    ) -> bool:
         """
         返回 True 表示已触发退群，不再继续后续检查
         """
@@ -207,12 +222,20 @@ class NoticeDecision:
         # 1. 小群限制
         min_size = self.ncfg.min_group_size
         if self.ncfg.block_small_group and member_count <= min_size:
+            if approved_invite:
+                result.admin_reply += (
+                    f"\n群人数 {member_count} ≤ {min_size}，但该群邀请已审批通过，不自动退群"
+                )
+                return False
             result.admin_reply += f"\n群人数 {member_count} ≤ {min_size}，小群我退了"
             result.operator_reply = f"小群不加，人数 {member_count} ≤ {min_size}"
             result.leave_group = True
             return True
 
         # 2. 大群限制
+        if small_only:
+            return False
+
         max_size = self.ncfg.max_group_size
         if max_size and member_count > max_size:
             result.admin_reply += f"\n群人数 {member_count} > {max_size}，大群我退了"

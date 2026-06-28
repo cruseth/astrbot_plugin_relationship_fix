@@ -1,8 +1,8 @@
 ﻿<div align="center">
 
-![:name](https://count.getloli.com/@astrbot_plugin_relationship?name=astrbot_plugin_relationship&theme=minecraft&padding=6&offset=0&align=top&scale=1&pixelated=1&darkmode=auto)
+![:name](https://count.getloli.com/@astrbot_plugin_relationship_fix?name=astrbot_plugin_relationship_fix&theme=minecraft&padding=6&offset=0&align=top&scale=1&pixelated=1&darkmode=auto)
 
-# astrbot_plugin_relationship
+# astrbot_plugin_relationship_fix
 
 _✨ 人际关系管理器 ✨_
 
@@ -30,17 +30,17 @@ _✨ 人际关系管理器 ✨_
 
 ## 安装
 
-- 在 AstrBot 插件市场搜索 `astrbot_plugin_relationship` 一键安装。
+- 在 AstrBot 插件市场搜索 `astrbot_plugin_relationship_fix` 一键安装。
 - 或手动克隆到插件目录：
 
 ```bash
 cd /AstrBot/data/plugins
-git clone https://github.com/Zhalslar/astrbot_plugin_relationship
+git clone https://github.com/cruseth/astrbot_plugin_relationship_fix
 ```
 
 ## 配置
 
-在 AstrBot 面板中配置：`插件管理 -> astrbot_plugin_relationship -> 操作 -> 插件配置`。
+在 AstrBot 面板中配置：`插件管理 -> astrbot_plugin_relationship_fix -> 操作 -> 插件配置`。
 
 ## 指令
 

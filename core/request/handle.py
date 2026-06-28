@@ -1,3 +1,5 @@
+from datetime import date
+
 from aiocqhttp import CQHttp
 
 from astrbot.api import logger
@@ -62,7 +64,13 @@ class RequestHandle:
         result = await decision.decide(approve=approve, extra=extra, block=block)
 
         if result.approve is not None:
-            await self._do_approve(event.bot, req, result.approve)
+            approved = await self._do_approve(event.bot, req, result.approve)
+            if approved and result.approve:
+                today = date.today().isoformat()
+                if result.auto_agree_kind:
+                    self.cfg.record_auto_agree(result.auto_agree_kind, today)
+                if isinstance(req, GroupRequest):
+                    self.cfg.mark_approved_group_invite(req.group_id, today)
 
         if result.event_reply:
             yield event.plain_result(result.event_reply)
@@ -83,7 +91,7 @@ class RequestHandle:
         elif result.block_user and isinstance(req, FriendRequest):
             self.cfg.add_block_user(req.user_id)
 
-    async def _do_approve(self, client: CQHttp, req: BaseRequest, approve: bool):
+    async def _do_approve(self, client: CQHttp, req: BaseRequest, approve: bool) -> bool:
         try:
             if isinstance(req, FriendRequest):
                 await client.set_friend_add_request(flag=req.flag, approve=approve)
@@ -91,8 +99,10 @@ class RequestHandle:
                 await client.set_group_add_request(
                     flag=req.flag, sub_type="invite", approve=approve
                 )
+            return True
         except Exception as e:
             logger.error(f"审批失败: {e}")
+            return False
 
     async def _send_user_reply(
         self,

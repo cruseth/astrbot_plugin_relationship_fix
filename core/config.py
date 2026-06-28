@@ -123,6 +123,17 @@ class RequestConfig(ConfigNode):
     auto_agree_friend: bool
     auto_reject_friend: bool
 
+    # 自动同意每日限额；0 表示不限
+    auto_agree_group_daily_limit: int
+    auto_agree_friend_daily_limit: int
+    auto_agree_group_used_date: str
+    auto_agree_group_used_count: int
+    auto_agree_friend_used_date: str
+    auto_agree_friend_used_count: int
+
+    # 已审批通过、等待入群通知消费的群邀请
+    approved_group_invites: list[str]
+
 
 class NoticeConfig(ConfigNode):
     block_small_group: bool
@@ -243,3 +254,45 @@ class PluginConfig(ConfigNode):
             self.manage_users.remove(uid)
             self.save_config()
             logger.info(f"用户 {uid} 已从审批员移除")
+
+    def get_auto_agree_usage(self, kind: str, today: str) -> tuple[int, int]:
+        limit_key = f"auto_agree_{kind}_daily_limit"
+        date_key = f"auto_agree_{kind}_used_date"
+        count_key = f"auto_agree_{kind}_used_count"
+
+        limit = int(getattr(self.request, limit_key) or 0)
+        used_date = str(getattr(self.request, date_key) or "")
+        used_count = int(getattr(self.request, count_key) or 0)
+        if used_date != today:
+            return limit, 0
+        return limit, used_count
+
+    def is_auto_agree_limited(self, kind: str, today: str) -> bool:
+        limit, used_count = self.get_auto_agree_usage(kind, today)
+        return limit > 0 and used_count >= limit
+
+    def record_auto_agree(self, kind: str, today: str) -> None:
+        _, used_count = self.get_auto_agree_usage(kind, today)
+        setattr(self.request, f"auto_agree_{kind}_used_date", today)
+        setattr(self.request, f"auto_agree_{kind}_used_count", used_count + 1)
+        self.save_config()
+
+    def mark_approved_group_invite(self, group_id: str | int, today: str) -> None:
+        records = self.request.approved_group_invites or []
+        record = f"{group_id}:{today}"
+        if record not in records:
+            records.append(record)
+            self.request.approved_group_invites = records
+            self.save_config()
+
+    def consume_approved_group_invite(self, group_id: str | int, today: str) -> bool:
+        gid = str(group_id)
+        records = self.request.approved_group_invites or []
+        matched = next((r for r in records if r == f"{gid}:{today}"), None)
+        if not matched:
+            return False
+
+        records.remove(matched)
+        self.request.approved_group_invites = records
+        self.save_config()
+        return True

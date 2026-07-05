@@ -42,7 +42,7 @@ class RequestDecision:
 
         # 自动规则（最高优先级）
         if approve is None:
-            if self._auto_decide(result):
+            if await self._auto_decide(result):
                 return result
 
         # aidian_verify
@@ -67,7 +67,7 @@ class RequestDecision:
     # ======================================================
     # 自动决策（由配置驱动）
     # ======================================================
-    def _auto_decide(self, result: RequestResult) -> bool:
+    async def _auto_decide(self, result: RequestResult) -> bool:
         cfg = self.cfg.request
 
         # ---------- 好友请求 ----------
@@ -121,6 +121,8 @@ class RequestDecision:
 
             # 3. 自动同意
             if cfg.auto_agree_group:
+                if await self._would_leave_group_by_notice_config(self.req.group_id):
+                    return False
                 today = date.today().isoformat()
                 if self.cfg.is_auto_agree_limited("group", today):
                     return False
@@ -129,6 +131,27 @@ class RequestDecision:
                 result.user_reply = "已自动同意群邀请"
                 result.admin_reply += "\n自动处理：已自动同意"
                 return True
+
+        return False
+
+    async def _would_leave_group_by_notice_config(self, group_id: str) -> bool:
+        ncfg = self.cfg.notice
+
+        group_info = (
+            await self.client.get_group_info(group_id=int(group_id), no_cache=True)
+            or {}
+        )
+        member_count = int(group_info.get("member_count") or 0)
+
+        if ncfg.block_small_group and member_count <= ncfg.min_group_size:
+            return True
+
+        if ncfg.max_group_size and member_count > ncfg.max_group_size:
+            return True
+
+        group_list = await self.client.get_group_list()
+        if len(group_list) + 1 > ncfg.max_group_capacity:
+            return True
 
         return False
 

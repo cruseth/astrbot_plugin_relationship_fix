@@ -199,20 +199,15 @@
                 },
                 "default": 100
             },
-            "max_ban_days": {
-                "description": "触发自动退群的禁言天数",
-                "hint": "bot被禁言超过此时间时将自动退群, 单位为天",
+            "max_ban_minutes": {
+                "description": "触发自动退群的禁言时间（分钟）",
+                "hint": "bot被禁言超过此时间时将自动退群，单位为分钟；设为 0 时，任意非零禁言都会触发",
                 "type": "int",
-                "slider": {
-                    "min": 0,
-                    "max": 30,
-                    "step": 1
-                },
-                "default": 3
+                "default": 4320
             },
             "auto_leave_on_ban": {
                 "description": "禁言超时自动退群",
-                "hint": "开启后，bot被禁言超过设定天数时自动退群，并将该群加入群聊黑名单",
+                "hint": "开启后，bot被禁言超过设定分钟数时自动退群，并将该群加入群聊黑名单",
                 "type": "bool",
                 "default": true
             },

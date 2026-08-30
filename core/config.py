@@ -145,16 +145,38 @@ class NoticeConfig(ConfigNode):
     min_group_size: int
     max_group_size: int
     max_group_capacity: int
-    max_ban_days: int
+    max_ban_minutes: int
     auto_leave_on_ban: bool
     kick_block_user: bool
     kick_block_group: bool
     mutual_blacklist: list[str]
 
     def __init__(self, data: MutableMapping[str, Any]):
+        max_ban_minutes = self._parse_nonnegative_int(data.get("max_ban_minutes"))
+        if max_ban_minutes is None:
+            max_ban_days = self._parse_nonnegative_int(data.get("max_ban_days"))
+            max_ban_minutes = (
+                max_ban_days * 24 * 60
+                if max_ban_days is not None
+                else 3 * 24 * 60
+            )
+        data["max_ban_minutes"] = max_ban_minutes
+        data.pop("max_ban_days", None)
         data.setdefault("auto_leave_on_ban", True)
         super().__init__(data)
-        self.max_duration = self.max_ban_days * 24 * 60 * 60
+        self.max_duration = self.max_ban_minutes * 60
+
+    @staticmethod
+    def _parse_nonnegative_int(value: Any) -> int | None:
+        if isinstance(value, bool):
+            return None
+        if isinstance(value, int):
+            return value if value >= 0 else None
+        if isinstance(value, str):
+            value = value.strip()
+            if value.isascii() and value.isdigit():
+                return int(value)
+        return None
 
     def is_mutual(self, group_id: str) -> bool:
         return group_id in self.mutual_blacklist
@@ -191,6 +213,8 @@ class PluginConfig(ConfigNode):
         self.group_blacklist = self.request.group_blacklist
         self.user_blacklist = self.request.user_blacklist
 
+        # 在保存根配置前实例化通知配置，持久化旧禁言天数到分钟字段的迁移结果。
+        self.notice
         self.save_config()
 
     @staticmethod

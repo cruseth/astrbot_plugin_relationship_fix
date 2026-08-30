@@ -104,19 +104,22 @@ class RequestDecision:
         if isinstance(self.req, GroupRequest):
             gid = str(self.req.group_id)
 
-            # 1. 全局自动拒绝
+            # 1. 群黑名单
+            if gid in cfg.group_blacklist:
+                result.approve = False
+                result.user_reply = (
+                    cfg.group_blacklist_reject_message
+                    or "该群已被列入黑名单，自动拒绝"
+                )
+                result.block_group = True
+                result.admin_reply += "\n自动处理：该群在黑名单中"
+                return True
+
+            # 2. 全局自动拒绝
             if cfg.auto_reject_group:
                 result.approve = False
                 result.user_reply = "已自动拒绝群邀请"
                 result.admin_reply += "\n自动处理：已自动拒绝"
-                return True
-
-            # 2. 群黑名单
-            if gid in cfg.group_blacklist:
-                result.approve = False
-                result.user_reply = "该群已被列入黑名单，自动拒绝"
-                result.block_group = True
-                result.admin_reply += "\n自动处理：该群在黑名单中"
                 return True
 
             # 3. 自动同意

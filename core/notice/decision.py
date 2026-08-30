@@ -104,9 +104,10 @@ class NoticeDecision:
             f"管理员，我在 {group_name}({gid}) 被 {operator_name} 禁言了{duration_str}"
         )
 
-        if self.msg.duration > self.ncfg.max_duration:
+        if self.msg.duration > self.ncfg.max_duration and self.ncfg.auto_leave_on_ban:
             max_str = convert_duration_advanced(self.ncfg.max_duration)
             result.admin_reply += f"\n禁言时间超过{max_str}，我退群了"
+            result.black_group = True
             result.leave_group = True
 
     async def _handle_kicked(self, result: NoticeResult):

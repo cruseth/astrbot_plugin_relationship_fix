@@ -65,6 +65,12 @@
                 "hint": "当收到黑名单群聊的群邀请时, bot会自动拒绝",
                 "type": "list"
             },
+            "group_blacklist_reject_message": {
+                "description": "群黑名单邀请拒绝提示",
+                "hint": "收到黑名单群聊的群邀请时，发送给邀请方的提示；留空时使用默认提示",
+                "type": "string",
+                "default": "该群已被列入黑名单，自动拒绝"
+            },
             "user_blacklist": {
                 "description": "用户黑名单",
                 "hint": "群聊黑名单中的用户拉bot进群或添加bot为好友时, 会被自动拒绝",
@@ -203,6 +209,12 @@
                     "step": 1
                 },
                 "default": 3
+            },
+            "auto_leave_on_ban": {
+                "description": "禁言超时自动退群",
+                "hint": "开启后，bot被禁言超过设定天数时自动退群，并将该群加入群聊黑名单",
+                "type": "bool",
+                "default": true
             },
             "kick_block_user": {
                 "description": "被踢则拉黑用户",

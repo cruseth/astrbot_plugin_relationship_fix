@@ -118,6 +118,7 @@ class RequestConfig(ConfigNode):
     # 群邀请
     auto_agree_group: bool
     auto_reject_group: bool
+    group_blacklist_reject_message: str
 
     # 好友请求
     auto_agree_friend: bool
@@ -134,6 +135,10 @@ class RequestConfig(ConfigNode):
     # 已审批通过、等待入群通知消费的群邀请
     approved_group_invites: list[str]
 
+    def __init__(self, data: MutableMapping[str, Any]):
+        data.setdefault("group_blacklist_reject_message", "")
+        super().__init__(data)
+
 
 class NoticeConfig(ConfigNode):
     block_small_group: bool
@@ -141,11 +146,13 @@ class NoticeConfig(ConfigNode):
     max_group_size: int
     max_group_capacity: int
     max_ban_days: int
+    auto_leave_on_ban: bool
     kick_block_user: bool
     kick_block_group: bool
     mutual_blacklist: list[str]
 
     def __init__(self, data: MutableMapping[str, Any]):
+        data.setdefault("auto_leave_on_ban", True)
         super().__init__(data)
         self.max_duration = self.max_ban_days * 24 * 60 * 60
 

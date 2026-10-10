@@ -91,6 +91,7 @@ class ForwardTool:
         source_user_id: int | None = None,
         forward_group_id: int | None = None,
         forward_user_id: int | None = None,
+        forward_user_ids: list[int] | None = None,
         batch_size: int = 0,
     ) -> bool:
         """
@@ -101,6 +102,7 @@ class ForwardTool:
         :param source_user_id: 源用户ID
         :param forward_group_id: 转发群组ID(优先使用)
         :param forward_user_id: 转发用户ID
+        :param forward_user_ids: 转发用户ID列表(在群组和单个用户均未指定时使用)
         """
         try:
             # 获取消息历史
@@ -113,13 +115,28 @@ class ForwardTool:
             nodes = ForwardTool._make_nodes(messages)
 
             # 按优先级转发到目标
-            await ForwardTool._forward_messages(
-                client,
-                group_id=forward_group_id,
-                user_id=forward_user_id,
-                messages=nodes,
-                batch_size=batch_size,
-            )
+            if forward_group_id:
+                await ForwardTool._forward_messages(
+                    client,
+                    group_id=forward_group_id,
+                    messages=nodes,
+                    batch_size=batch_size,
+                )
+            elif forward_user_ids:
+                for user_id in forward_user_ids:
+                    await ForwardTool._forward_messages(
+                        client,
+                        user_id=user_id,
+                        messages=nodes,
+                        batch_size=batch_size,
+                    )
+            else:
+                await ForwardTool._forward_messages(
+                    client,
+                    user_id=forward_user_id,
+                    messages=nodes,
+                    batch_size=batch_size,
+                )
             return True
         except Exception:
             return False
@@ -207,6 +224,14 @@ class ForwardTool:
                 await event.bot.send_group_msg(
                     group_id=int(config.manage_group), message=text
                 )
+            elif config.manage_users:
+                for user_id in config.manage_users:
+                    try:
+                        await event.bot.send_private_msg(
+                            user_id=int(user_id), message=text
+                        )
+                    except Exception as e:
+                        logger.warning(f"向审核员 {user_id} 发送消息失败: {e}")
             elif config.admin_id:
                 await event.bot.send_private_msg(
                     user_id=int(config.admin_id), message=text

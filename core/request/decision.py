@@ -2,6 +2,7 @@ from dataclasses import dataclass
 from datetime import date
 
 from aiocqhttp import CQHttp
+from astrbot.api import logger
 
 from ..config import PluginConfig
 from .model import BaseRequest, FriendRequest, GroupRequest
@@ -140,20 +141,26 @@ class RequestDecision:
     async def _would_leave_group_by_notice_config(self, group_id: str) -> bool:
         ncfg = self.cfg.notice
 
-        group_info = (
-            await self.client.get_group_info(group_id=int(group_id), no_cache=True)
-            or {}
-        )
-        member_count = int(group_info.get("member_count") or 0)
+        try:
+            group_info = (
+                await self.client.get_group_info(group_id=int(group_id), no_cache=True)
+                or {}
+            )
+            member_count = int(group_info.get("member_count") or 0)
 
-        if ncfg.block_small_group and member_count <= ncfg.min_group_size:
-            return True
+            if ncfg.block_small_group and member_count <= ncfg.min_group_size:
+                return True
 
-        if ncfg.max_group_size and member_count > ncfg.max_group_size:
-            return True
+            if ncfg.max_group_size and member_count > ncfg.max_group_size:
+                return True
 
-        group_list = await self.client.get_group_list()
-        if len(group_list) + 1 > ncfg.max_group_capacity:
+            group_list = await self.client.get_group_list()
+            if len(group_list) + 1 > ncfg.max_group_capacity:
+                return True
+        except Exception as e:
+            logger.warning(
+                f"检查群 {group_id} 是否应自动拒绝时失败，将回退到人工审核: {e}"
+            )
             return True
 
         return False

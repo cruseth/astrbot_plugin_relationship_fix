@@ -1,5 +1,31 @@
 # 更新日志
 
+## v3.1.0
+
+新功能：
+
+- 全面支持大模型工具调用（LLM Tool Calling）：
+  - `llm_get_group_list`: 查看加入的群列表
+  - `llm_get_friend_list`: 查看好友列表
+  - `llm_leave_group`: 退出指定群聊
+  - `llm_delete_friend`: 删除指定好友
+  - `llm_send_contact_card`: 发送群或好友推荐名片
+  - `llm_add_friend_request`: 主动发起添加好友申请
+  - `llm_add_group_request`: 主动发起加群申请
+  - `llm_check_messages`: 抽查指定群或用户的历史聊天记录并合并转发
+
+## v3.0.5
+
+修复：
+
+- 当未设置管理群时，将管理员通知转发给已配置的管理员列表。
+- 调整群组请求回复行为，避免向目标群组发送消息，而是通过邀请者的私聊进行回复。
+
+改进：
+
+- 移除代码中冗余的注释和文档字符串，使代码库更加精简。
+
+
 ## v3.0.4
 
 新功能：

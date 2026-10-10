@@ -1,5 +1,6 @@
 import asyncio
 
+from astrbot.api import logger
 from astrbot.core.platform.sources.aiocqhttp.aiocqhttp_message_event import (
     AiocqhttpMessageEvent,
 )
@@ -38,7 +39,7 @@ class NoticeHandle:
         if (
             self.cfg.check.check_new_group
             and result.check_group
-            and (self.cfg.manage_group or self.cfg.admin_id)
+            and (self.cfg.manage_group or self.cfg.manage_users or self.cfg.admin_id)
         ):
             # 延迟
             if self.cfg.check.delay > 0:
@@ -46,14 +47,21 @@ class NoticeHandle:
             # 转发
             fgid = int(self.cfg.manage_group) if self.cfg.manage_group else None
             fuid = int(self.cfg.admin_id) if self.cfg.admin_id else None
-            await ForwardTool.source_forward(
-                client=event.bot,
-                count=self.cfg.check.count,
-                source_group_id=int(event.get_group_id()),
-                source_user_id=int(event.get_sender_id()),
-                forward_group_id=fgid,
-                forward_user_id=fuid,
-            )
+            fuids = None
+            if fgid is None and fuid is None:
+                fuids = [int(uid) for uid in dict.fromkeys(self.cfg.manage_users)]
+            try:
+                await ForwardTool.source_forward(
+                    client=event.bot,
+                    count=self.cfg.check.count,
+                    source_group_id=int(event.get_group_id()),
+                    source_user_id=int(event.get_sender_id()),
+                    forward_group_id=fgid,
+                    forward_user_id=fuid,
+                    forward_user_ids=fuids,
+                )
+            except Exception as e:
+                logger.warning(f"新群自动抽查转发失败: {e}")
 
         # 拉黑群聊
         if result.black_group:
